@@ -11,8 +11,8 @@ import (
 )
 
 type item struct {
-	value     int
-	createdAt time.Time
+	value      int
+	lastUsedAt time.Time
 }
 
 var (
@@ -59,8 +59,8 @@ func setVal(words []string) {
 		log.Fatal(err)
 	}
 	cache[key] = &item{
-		value:     val,
-		createdAt: time.Now(),
+		value:      val,
+		lastUsedAt: time.Now(),
 	}
 	fmt.Println("OK")
 }
@@ -76,6 +76,7 @@ func getVal(words []string) {
 		return
 	}
 	fmt.Println((*item).value)
+	(*item).lastUsedAt = time.Now()
 }
 
 func findLRU() int {
@@ -84,7 +85,7 @@ func findLRU() int {
 		if count == 0 {
 			lruKey = k
 		}
-		if time.Since((*cache[k]).createdAt) > time.Since((*cache[lruKey]).createdAt) {
+		if time.Since((*cache[k]).lastUsedAt) > time.Since((*cache[lruKey]).lastUsedAt) {
 			lruKey = k
 		}
 		count++
