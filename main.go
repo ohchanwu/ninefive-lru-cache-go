@@ -7,10 +7,16 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
+type item struct {
+	value     int
+	createdAt time.Time
+}
+
 var (
-	cache map[int]int
+	cache map[int]*item
 	capa  = 0
 )
 
@@ -36,22 +42,25 @@ func setCapa(words []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cache = make(map[int]int, capa)
+	cache = make(map[int]*item, capa)
 	fmt.Println("OK")
 }
 
 func setVal(words []string) {
 	if len(cache) >= capa {
-		fmt.Println("OK")
-		return
+		(*cache[findLRU()]).value = -1
 	}
 	key, err := strconv.Atoi(words[1])
 	if err != nil {
 		log.Fatal(err)
 	}
-	cache[key], err = strconv.Atoi(words[2])
+	val, err := strconv.Atoi(words[2])
 	if err != nil {
 		log.Fatal(err)
+	}
+	cache[key] = &item{
+		value:     val,
+		createdAt: time.Now(),
 	}
 	fmt.Println("OK")
 }
@@ -61,10 +70,24 @@ func getVal(words []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	val, ok := cache[key]
+	item, ok := cache[key]
 	if !ok {
 		fmt.Println(-1)
 		return
 	}
-	fmt.Println(val)
+	fmt.Println((*item).value)
+}
+
+func findLRU() int {
+	var lruKey, count int
+	for k := range cache {
+		if count == 0 {
+			lruKey = k
+		}
+		if time.Since((*cache[k]).createdAt) > time.Since((*cache[lruKey]).createdAt) {
+			lruKey = k
+		}
+		count++
+	}
+	return lruKey
 }
