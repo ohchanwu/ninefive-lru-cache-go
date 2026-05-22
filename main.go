@@ -5,19 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
-type item struct {
-	value      int
-	lastUsedAt time.Time
-}
-
 var (
-	cache map[int]*item
-	capa  = 0
+	cache map[int]int
+	// keys are ordered from LRU to MRU
+	keys []int
+	capa = 0
 )
 
 func main() {
@@ -42,13 +39,17 @@ func setCapa(words []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cache = make(map[int]*item, capa)
+	cache = make(map[int]int, capa)
+	keys = make([]int, 0, capa)
 	fmt.Println("OK")
 }
 
 func setVal(words []string) {
 	if len(cache) >= capa {
-		(*cache[findLRU()]).value = -1
+		// remove LRU node from cache
+		delete(cache, keys[0])
+		// shift key from slice
+		keys = slices.Delete(keys, 0, 1)
 	}
 	key, err := strconv.Atoi(words[1])
 	if err != nil {
@@ -58,10 +59,8 @@ func setVal(words []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cache[key] = &item{
-		value:      val,
-		lastUsedAt: time.Now(),
-	}
+	cache[key] = val
+	keys = append(keys, key)
 	fmt.Println("OK")
 }
 
@@ -70,25 +69,13 @@ func getVal(words []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	item, ok := cache[key]
+	val, ok := cache[key]
 	if !ok {
 		fmt.Println(-1)
 		return
 	}
-	fmt.Println((*item).value)
-	(*item).lastUsedAt = time.Now()
-}
-
-func findLRU() int {
-	var lruKey, count int
-	for k := range cache {
-		if count == 0 {
-			lruKey = k
-		}
-		if time.Since((*cache[k]).lastUsedAt) > time.Since((*cache[lruKey]).lastUsedAt) {
-			lruKey = k
-		}
-		count++
-	}
-	return lruKey
+	fmt.Println(val)
+	index := slices.Index(keys, key)
+	keys = slices.Delete(keys, index, index+1)
+	keys = append(keys, key)
 }
