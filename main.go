@@ -41,6 +41,9 @@ func main() {
 
 func setCapa(words []string) {
 	var err error
+	if len(words) < 2 {
+		log.Fatal("1 argument is required to set capacity")
+	}
 	capa, err = strconv.Atoi(words[1])
 	if err != nil {
 		log.Fatal(err)
@@ -53,6 +56,9 @@ func setCapa(words []string) {
 }
 
 func setVal(words []string) {
+	if len(words) < 3 {
+		log.Fatal("2 arguments are required to set a value")
+	}
 	key, err := strconv.Atoi(words[1])
 	if err != nil {
 		log.Fatal(err)
@@ -77,6 +83,9 @@ func setVal(words []string) {
 }
 
 func getVal(words []string) {
+	if len(words) < 2 {
+		log.Fatal("1 argument is required to get a value")
+	}
 	key, err := strconv.Atoi(words[1])
 	if err != nil {
 		log.Fatal(err)
